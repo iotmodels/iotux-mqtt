@@ -1,5 +1,8 @@
 const gbid = id => document.getElementById(id)
 
+const colors = ['red', 'blue', 'green', 'orange', 'lightgreen', 'lightblue', 'silver', 'black', 'grey']
+const rndColor = () => colors[Math.floor(Math.random() * colors.length)]
+
 let mqttCreds = JSON.parse(window.localStorage.getItem('mqttCreds'))
 let client
 let deviceId
@@ -19,16 +22,17 @@ const start = async () => {
     const el = document.getElementById('chart')
     const dataPoints = new Map()
     const series = []
+
     Object.keys(Telemetries.fields).forEach( t => {
         dataPoints[t] = []
-        series.push({ name: t, data: dataPoints[t]})
+        series.push({ name: t, data: dataPoints[t], color: rndColor()})
     })
 
     let startTime = Date.now();
     const chart = new TimeChart(el, {
         series: series,
-        lineWidth: 5
-        //baseTime: startTime
+        lineWidth: 5,
+        baseTime: startTime
     });
 
  
@@ -45,10 +49,11 @@ const start = async () => {
         const segments = topic.split('/')
         const what = segments[2]
         if (what === 'tel') {
+            const now = Date.now() - startTime
             const tel = Telemetries.decode(message)
             Object.keys(Telemetries.fields).forEach(t => {
                 if (tel[t]) {
-                    dataPoints[t].push({x: i++, y: tel[t]})
+                    dataPoints[t].push({x: now, y: tel[t]})
                 }
             })
             Object.keys(dataPoints).forEach(k => {               

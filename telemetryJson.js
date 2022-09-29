@@ -5,6 +5,9 @@ const dtmiToPath = function (dtmi) {
     return `${dtmi.toLowerCase().replace(/:/g, '/').replace(';', '-')}.json`
 }
 
+const colors = ['red', 'blue', 'green', 'orange', 'lightgreen', 'lightblue', 'silver', 'black', 'grey']
+const rndColor = () => colors[Math.floor(Math.random() * colors.length)]
+
 let mqttCreds = JSON.parse(window.localStorage.getItem('mqttCreds'))
 let client
 let deviceId
@@ -28,14 +31,14 @@ const start = async () => {
     const series = []
     Telemetries.map(t => t.name).forEach( t => {
         dataPoints[t] = []
-        series.push({ name: t, data: dataPoints[t]})
+        series.push({ name: t, data: dataPoints[t], color: rndColor()})
     })
 
     let startTime = Date.now();
     const chart = new TimeChart(el, {
         series: series,
-        lineWidth: 5
-        //baseTime: startTime
+        lineWidth: 5,
+        baseTime: startTime
     });
 
  
@@ -46,16 +49,17 @@ const start = async () => {
                     client.subscribe(`device/${deviceId}/telemetry`)
                 })
                 
-    let i =0
+    
     client.on('message', (topic, message) => {
         //console.log(topic)
         const segments = topic.split('/')
         const what = segments[2]
         if (what === 'telemetry') {
+            let now = Date.now() - startTime
             const tel = JSON.parse(message)
             Telemetries.map(t => t.name).forEach(t => {
                 if (tel[t]) {
-                    dataPoints[t].push({x: i++, y: tel[t]})
+                    dataPoints[t].push({x: now, y: tel[t]})
                 }
             })
             Object.keys(dataPoints).forEach(k => {               
