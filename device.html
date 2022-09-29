@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>PnP MQTT - device detail</title>
+    <title>IoT UX MQTT - device detail</title>
     <script src="https://unpkg.com/vue@3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
@@ -12,17 +12,17 @@
 </head>
 <body>
     <div id="app" v-cloak>
-        <device-header :device="device" :modelpath="modelpath"></device-header>
+        <device-header :device="device" :modelpath="modelpath" :host="host"></device-header>
         <div>
             <h3>Commands</h3>
             <ul>
                 <li class="raw" v-for="c in commands">
-                    <command :command="c" :device-id="gv(device,'deviceId')" @command-invoked="onCommand" :response-msg="c.responseMsg"></command>
+                    <command :command="c" :device-id="gv(device,'deviceId')" @command-invoked="onCommand" @clear-resp="c.responseMsg=''" :response-msg="c.responseMsg"></command>
                 </li>
             </ul>
         </div>
         <div>
-            <h3>Device Properties</h3>
+            <h3>Properties</h3>
             <ul>
                 <li class="raw" v-for="p in properties">
                     <reported-property v-if="p.writable!=true" :property="p" :device-props="device.properties"></reported-property>
@@ -30,13 +30,9 @@
                 </li>
             </ul>
         </div>
-        <div v-if="telemetries.length > 0">
+        <div v-if="telemetries.length > 0" class="telemetryDiv">
             <h3>Telemetry</h3>
-            <ul>
-                <li class="raw" v-for="t in telemetries">
-                    <telemetry :telemetry="t" :telemetry-values="telemetryValues"></telemetry>
-                </li>
-            </ul>
+            <iframe :src="'telemetryJson.html?id='+ device.deviceId +'&modelId=' + device.modelId" width="500px" height="550px"></iframe> 
         </div>
     </div>
     

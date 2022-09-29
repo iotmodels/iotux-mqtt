@@ -1,17 +1,16 @@
 const gbid = id => document.getElementById(id)
 
+const repoBaseUrl = 'https://iotmodels.github.io/dmr/' // 'https://devicemodels.azure.com'
+const dtmiToPath = function (dtmi) {
+    return `${dtmi.toLowerCase().replace(/:/g, '/').replace(';', '-')}.json`
+}
+
 let mqttCreds = JSON.parse(window.localStorage.getItem('mqttCreds'))
 let client
 let deviceId
 let modelId
 
 let Telemetries
-let Properties
-let echoRequest
-let echoResponse
-let ack
-//let getRuntimeStatsRequest
-//let getRuntimeStatsResponse
 
 const start = async () => {
 
@@ -19,14 +18,15 @@ const start = async () => {
     deviceId = qs.get('id')
     modelId  = qs.get('modelId')
    
+    const modelpath = `${repoBaseUrl}${dtmiToPath(modelId)}`
+    const model = await (await window.fetch(modelpath)).json()
 
-    const root = await protobuf.load(modelId)
-    Telemetries = root.lookupType('Telemetries')
+    Telemetries = model.contents.filter(c => c['@type'].includes('Telemetry'))
     
     const el = document.getElementById('chart')
     const dataPoints = new Map()
     const series = []
-    Object.keys(Telemetries.fields).forEach( t => {
+    Telemetries.map(t => t.name).forEach( t => {
         dataPoints[t] = []
         series.push({ name: t, data: dataPoints[t]})
     })
@@ -43,17 +43,17 @@ const start = async () => {
     client = mqtt.connect(`${mqttCreds.useTls ? 'wss' : 'ws'}://${mqttCreds.hostName}:${mqttCreds.port}/mqtt`, {
                 clientId: mqttCreds.clientId + 1, username: mqttCreds.userName, password: mqttCreds.password })
                 client.on('connect', () => {
-                    client.subscribe(`device/${deviceId}/tel`)
+                    client.subscribe(`device/${deviceId}/telemetry`)
                 })
                 
     let i =0
     client.on('message', (topic, message) => {
-        console.log(topic)
+        //console.log(topic)
         const segments = topic.split('/')
         const what = segments[2]
-        if (what === 'tel') {
-            const tel = Telemetries.decode(message)
-            Object.keys(Telemetries.fields).forEach(t => {
+        if (what === 'telemetry') {
+            const tel = JSON.parse(message)
+            Telemetries.map(t => t.name).forEach(t => {
                 if (tel[t]) {
                     dataPoints[t].push({x: i++, y: tel[t]})
                 }

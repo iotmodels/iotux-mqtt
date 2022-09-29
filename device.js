@@ -32,10 +32,12 @@ export default {
         commands: [],
         telemetries: [],
         modelpath: '',
-        telemetryValues: {}
+        telemetryValues: {},
+        host : ''
     }),
     created() {
         client = mqtt.start()
+        this.host = mqtt.host
         this.initModel()
         this.fetchData()
     },

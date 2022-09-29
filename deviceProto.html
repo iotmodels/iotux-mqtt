@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>PnP MQTT - device detail</title>
+    <title>IoT UX MQTT - device detail</title>
     <script src="https://unpkg.com/vue@3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
@@ -23,7 +23,7 @@
             </ul>
         </div>
         <div>
-            <h3>Device Properties</h3>
+            <h3>Properties</h3>
             <ul>
                 <li class="raw" v-for="p in properties">
                     <reported-property v-if="p.writable!=true" :property="p" :device-props="device.properties"></reported-property>
@@ -33,7 +33,7 @@
         </div>
         <div v-if="telemetries.length > 0" class="telemetryDiv">
             <h3>Telemetry</h3>
-            <iframe :src="'telemetryChart.html?id='+ device.deviceId +'&modelId=' + device.modelId" width="500px" height="550px"></iframe> 
+            <iframe :src="'telemetryProto.html?id='+ device.deviceId +'&modelId=' + device.modelId" width="500px" height="550px"></iframe> 
         </div>
     </div>
     
