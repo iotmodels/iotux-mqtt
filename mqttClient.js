@@ -21,7 +21,8 @@ const mqttClient = {
         const client = mqtt.connect(`${mqttCreds.useTls ? 'wss' : 'ws'}://${mqttCreds.hostName}:${mqttCreds.port}/mqtt`, {
             clientId: mqttCreds.clientId, username: mqttCreds.userName, password: mqttCreds.password })
         return client
-    }
+    },
+    host: mqttCreds.hostName
 }
 
 export default mqttClient

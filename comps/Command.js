@@ -6,7 +6,7 @@ export default {
         }
     },
     props: ['command', 'deviceId', 'responseMsg'],
-    emits: ['commandInvoked'],
+    emits: ['commandInvoked', 'clearResp'],
     methods: {
         resolveSchema(s) {
             const isObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
@@ -30,6 +30,9 @@ export default {
                 reqValue = this.request
             }
             this.$emit('commandInvoked', this.command.name, reqValue)
+        },
+        clearResp () {
+            this.$emit('clearResp')
         }
     },
     template: `
@@ -38,7 +41,7 @@ export default {
         <textarea v-model="request">
         </textarea>
         <br />
-        <button @click="invoke()">invoke</button>
+        <button @click="invoke()">invoke</button> <a @click="clearResp()" href="#">clear</a>
         <pre>{{responseMsg}}</pre>
     `
 }

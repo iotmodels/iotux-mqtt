@@ -13,12 +13,12 @@
 </head>
 <body>
     <div id="app" v-cloak>
-        <device-header :device="device" :modelpath="modelpath"></device-header>
+        <device-header :device="device" :modelpath="modelpath" :host="host"></device-header>
         <div>
             <h3>Commands</h3>
             <ul>
                 <li class="raw" v-for="c in commands">
-                    <command :command="c" :device-id="gv(device,'deviceId')" @command-invoked="onCommand" :response-msg="c.responseMsg"></command>
+                    <command :command="c" :device-id="gv(device,'deviceId')" @command-invoked="onCommand" @clear-resp="c.responseMsg=''" :response-msg="c.responseMsg"></command>
                 </li>
             </ul>
         </div>
@@ -31,15 +31,9 @@
                 </li>
             </ul>
         </div>
-        <div v-if="telemetries.length > 0">
+        <div v-if="telemetries.length > 0" class="telemetryDiv">
             <h3>Telemetry</h3>
-            <a :href="'telemetryChart.html?id='+device.deviceId">Chart</a>
-            <ul>
-                <li class="raw" v-for="t in telemetries">
-                    <telemetry :telemetry="t" :telemetry-values="telemetryValues"></telemetry>
-                </li>
-            </ul>
-            
+            <iframe :src="'telemetryChart.html?id='+ device.deviceId +'&modelId=' + device.modelId" width="500px" height="550px"></iframe> 
         </div>
     </div>
     

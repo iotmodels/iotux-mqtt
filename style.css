@@ -16,7 +16,7 @@ th, td {
 
 li.raw {
     list-style:none;
-    width: 600px;
+    width: 400px;
     padding: 5px;
     border: solid 1px black;
     margin: 2px
@@ -46,7 +46,14 @@ footer {
     background-color: #D0DAEE;
     padding: 5px
 }
-
+pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+ }
 .creds {
  width: 700px;
  border: 1px solid grey
@@ -87,4 +94,10 @@ footer {
     background-color:#ecf6fc;
     padding:3px;
     margin:3px
+}
+
+.telemetryDiv {
+    position: absolute;
+    top: 120px;
+    left: 500px
 }
