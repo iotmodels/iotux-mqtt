@@ -3,7 +3,7 @@ let client
 
 const repoBaseUrl = 'https://iotmodels.github.io/dmr/' // 'https://devicemodels.azure.com'
 const dtmiToPath = function (dtmi) {
-    return `/${dtmi.toLowerCase().replace(/:/g, '/').replace(';', '-')}.json`
+    return `${dtmi.toLowerCase().replace(/:/g, '/').replace(';', '-')}.json`
 }
 
 const isBuffer = obj => {

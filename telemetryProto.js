@@ -3,6 +3,11 @@ const gbid = id => document.getElementById(id)
 const colors = ['red', 'blue', 'green', 'orange', 'lightgreen', 'lightblue', 'silver', 'black', 'grey']
 const rndColor = () => colors[Math.floor(Math.random() * colors.length)]
 
+const resolveModel = proto => {
+    const repoBaseUrl = 'https://iotmodels.github.io/dmr/'
+    return `${repoBaseUrl}protos/${proto.toLowerCase().replace('.', '/')}.proto`
+}
+
 let mqttCreds = JSON.parse(window.localStorage.getItem('mqttCreds'))
 let client
 let deviceId
@@ -15,8 +20,8 @@ const start = async () => {
     deviceId = qs.get('id')
     modelId  = qs.get('modelId')
    
-
-    const root = await protobuf.load(modelId)
+    const modelUrl = resolveModel(modelId)
+    const root = await protobuf.load(modelUrl)
     Telemetries = root.lookupType('Telemetries')
     
     const el = document.getElementById('chart')

@@ -1,6 +1,10 @@
 import mqtt from './mqttClient.js'
 let client
 
+const resolveModel = proto => {
+    const repoBaseUrl = 'https://iotmodels.github.io/dmr/'
+    return `${repoBaseUrl}protos/${proto.toLowerCase().replace('.', '/')}.proto`
+}
 const isBuffer = obj => {
     return obj != null && obj.constructor != null &&
         typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)
@@ -46,8 +50,9 @@ export default {
     },
     methods: {
         async loadModel(modelId) {
-            root = await protobuf.load(modelId)
-            this.modelpath = modelId
+            const modelUrl = resolveModel(modelId)
+            root = await protobuf.load(modelUrl)
+            this.modelpath = modelUrl
             Telemetries = root.lookupType('Telemetries')
             Properties = root.lookupType('Properties')
             PropertiesSetter = root.lookupService('PropertiesSetter')
