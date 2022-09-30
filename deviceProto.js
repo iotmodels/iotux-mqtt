@@ -10,10 +10,14 @@ const isObject = obj => Object.prototype.toString.call(obj) === '[object Object]
 
 const resolveSchema = s => {
     if (!isObject(s) && s.startsWith('dtmi:')) {
-        console.log('not supported schema', s)
+        console.error('not supported schema', s)
         return null
     } else if (isObject(s) && s['@type'] === 'Enum') {
         return s.valueSchema
+    } else if (s === 'int32') {
+        return 'integer'
+    } else if (s === 'bool') {
+        return  'boolean'
     } else {
         return s
     }
@@ -90,11 +94,11 @@ export default {
                         //console.log('    ' + req.fields[k].name + ': ' + req.fields[k].type)
                         const prop = this.properties.filter(p=>p.name===k)[0]
                         prop.writable = true
-                        prop.schema = 'integer'
+                        prop.schema = req.fields[k].type
                     })    
                 const res = root.lookupType(method.responseType)
-                Object.keys(res.fields)
-                    .forEach(k => console.log('    ' + res.fields[k].name + ': ' + res.fields[k].type))    
+                // Object.keys(res.fields)
+                //     .forEach(k => console.log('    ' + res.fields[k].name + ': ' + res.fields[k].type))    
             })
         },
         async initModel() {
@@ -118,6 +122,7 @@ export default {
                     client.subscribe(`registry/${this.device.deviceId}/status`)
                     client.subscribe(`device/${this.device.deviceId}/props`)
                     client.subscribe(`device/${this.device.deviceId}/props/+/ack`)
+                    client.subscribe(`device/${this.device.deviceId}/props/+/set`)
                     client.subscribe(`device/${this.device.deviceId}/cmd/+/resp`)
                 })
             client.on('message', (topic, message) => {
@@ -141,9 +146,7 @@ export default {
                     const propName = ts[3]
                     if (topic.endsWith('/set')) {
                         const wprop = Properties.decode(message)
-                        if (wprop.interval) {
-                            this.device.properties.desired[propName] = wprop[propName]
-                        }
+                        this.device.properties.desired[propName] = wprop[propName]
                     }else if (topic.endsWith('/ack')) {
                         const ackMsg = ack.decode(message)
                         const ackValue = Properties.decode(ackMsg.value.value)
@@ -210,7 +213,7 @@ export default {
                     desiredValue = parseFloat(val)
                     break
                 default:
-                    console.log('schema serializer not implemented', resSchema)
+                    console.error('schema serializer not implemented', resSchema)
                     throw new Error('Schema serializer not implemented for' + Json.stringify(resSchema))
             }
             const prop = {}

@@ -45,7 +45,7 @@ const start = async () => {
                 
     let i =0
     client.on('message', (topic, message) => {
-        console.log(topic)
+        //console.log(topic)
         const segments = topic.split('/')
         const what = segments[2]
         if (what === 'tel') {

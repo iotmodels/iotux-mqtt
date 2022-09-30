@@ -23,7 +23,7 @@
     },
     template: `
         <div class="prop">
-            <span class="prop-name" :title="property.name">{{property.displayName || property.name}}</span>
+            <span class="prop-name" :title="property.name">{{property.name}} [{{schema}}]</span>
             <span class="prop-value">{{gv(deviceProps, 'reported.' + property.name + '.value')}}</span>
             desired
             <input size="1" :value="gv(deviceProps, 'desired.' + property.name)" type="text" :id="'in-' + property.name" />
