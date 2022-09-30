@@ -204,7 +204,7 @@ export default {
                     desiredValue = parseInt(val)
                     break
                 case 'boolean':
-                    desiredValue = (val === 'true')
+                    desiredValue = (val === 'true') ? 1 : 0
                     break
                 case 'double':
                     desiredValue = parseFloat(val)
