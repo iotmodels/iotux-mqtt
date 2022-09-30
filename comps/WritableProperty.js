@@ -7,9 +7,14 @@
             return _.get(object, string, defaultValue)
         },
         getPropColorState(name) {
+            const desVal = this.gv(this.deviceProps, 'desired.' + name)
             const repAck = this.gv(this.deviceProps, 'reported.' + name)
-            if (repAck.ac === 200) return 'lightgreen'
-            if (repAck.ac === 203 || repAck.ac === 0) return 'silver'
+            if (repAck.value)
+            {
+                if (desVal.toString() !== repAck.value.toString()) return 'lightgrey' 
+                if (repAck.ac === 200) return 'lightgreen'
+                if (repAck.ac === 203 || repAck.ac === 0) return 'silver'
+            }
             return 'lightpink'
         },
         updateProp() {
@@ -23,6 +28,9 @@
     },
     template: `
         <div class="prop">
+            <div class="prop-desc" v-if="property.description">
+                {{property.description}}
+            </div>
             <span class="prop-name" :title="property.name">{{property.name}} [{{schema}}]</span>
             <span class="prop-value">{{gv(deviceProps, 'reported.' + property.name + '.value')}}</span>
             desired
@@ -37,10 +45,12 @@
                     <span>descr:</span>
                     <span>{{gv(deviceProps, 'reported.' + property.name + '.ad')}}</span>
                 </div>
+                <div class="prop-md">
+                    <span>version:</span>
+                    <span>{{gv(deviceProps, 'reported.' + property.name + '.av')}}</span>
             </div>
-            <div class="prop-desc" v-if="property.description">
-                {{property.description}}
             </div>
+           
         </div>
     `
 }

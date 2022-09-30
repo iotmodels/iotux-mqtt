@@ -12,11 +12,11 @@
     },
     template: `
     <div class="prop">
-        <span class="prop-name" :title="property.name">{{property.displayName || property.name}}</span>
-        <span class="prop-value">{{gv(deviceProps, 'reported.' + property.name)}}</span>
         <div class="prop-desc" v-if="property.description">
             {{property.description}}
         </div>
+        <span class="prop-name" :title="property.name">{{property.displayName || property.name}}</span>
+        <span class="prop-value">{{gv(deviceProps, 'reported.' + property.name)}}</span>
     </div>
     `
 }
