@@ -76,8 +76,8 @@ export default {
                     }
 
                 }
-                //const msg = JSON.parse(message)
-                // console.log(topic, msg)
+                const msgJ = JSON.parse(message)
+                console.log(topic, msgJ)
                 const ts = topic.split('/')
                 if (topic === `registry/${this.device.deviceId}/status`) {
                     this.device.connectionState = msg.status === 'online' ? 'Connected' : 'Disconnected'
@@ -85,9 +85,11 @@ export default {
                 }
                 if (topic.startsWith(`device/${this.device.deviceId}/props`)) {
                     const propName = ts[3]
-                    if (topic.endsWith('/set'))
+                    if (topic.indexOf('/set') > 0)
                     {
                         this.device.properties.desired[propName] = msg
+                    // } else  if (topic.endsWith('/ack')) {
+                    //     this.device.properties.reported['ack_' + propName] = msg
                     } else {
                         this.device.properties.reported[propName] = msg
                     }
@@ -112,9 +114,10 @@ export default {
         },
         async handlePropUpdate(name, val, schema) {
             const resSchema = resolveSchema(schema)
-            this.device.properties.desired[name] = ''
-            this.device.properties.reported[name] = ''
-            const topic = `device/${this.device.deviceId}/props/${name}/set`
+            //this.device.properties.desired[name] = ''
+            //this.device.properties.reported[name] = ''
+            const version = (this.device.properties.reported[name].av || 0) + 1
+            const topic = `device/${this.device.deviceId}/props/${name}/set/?$version=${version}`
             let desiredValue = {}
             switch (resSchema) {
                 case 'string':
