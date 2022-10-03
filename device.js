@@ -62,7 +62,8 @@ export default {
             client.on('error', e => console.error(e))
             client.on('connect', () => {
                 console.log('connected', client.connected)
-                client.subscribe(`device/${this.device.deviceId}/#`)
+                client.subscribe(`device/${this.device.deviceId}/props/#`)
+                client.subscribe(`device/${this.device.deviceId}/commands/#`)
                 client.subscribe(`registry/${this.device.deviceId}/status`)
                 })
             client.on('message', (topic, message) => {
@@ -76,8 +77,8 @@ export default {
                     }
 
                 }
-                const msgJ = JSON.parse(message)
-                console.log(topic, msgJ)
+                //const msgJ = JSON.parse(message)
+                //console.log(topic, msgJ)
                 const ts = topic.split('/')
                 if (topic === `registry/${this.device.deviceId}/status`) {
                     this.device.connectionState = msg.status === 'online' ? 'Connected' : 'Disconnected'
