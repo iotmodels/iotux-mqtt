@@ -46,7 +46,7 @@ const start = async () => {
     client = mqtt.connect(`${mqttCreds.useTls ? 'wss' : 'ws'}://${mqttCreds.hostName}:${mqttCreds.port}/mqtt`, {
                 clientId: mqttCreds.clientId + 1, username: mqttCreds.userName, password: mqttCreds.password })
                 client.on('connect', () => {
-                    client.subscribe(`device/${deviceId}/telemetry`)
+                    client.subscribe(`device/${deviceId}/telemetry/#`)
                 })
                 
     
