@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoadProtos</title>
+</head>
+<body>
+    <input type="text" name="modelId" id="modelId" value="rido.memmon">
+    <button id="resolve" onclick="loadModel()">Load</button>
+    <div id="modelUrlDiv"></div>
+    <pre id="result"></pre>
+<script>
+    const loadModel = () => {
+            const resolveModel = proto => {
+                const repoBaseUrl = 'https://iotmodels.github.io/dmr/'
+                return `${repoBaseUrl}protos/${proto.toLowerCase().replace('.', '/')}.proto`
+            }
+        const modelId = document.getElementById('modelId').value
+        const modelUrl = resolveModel(modelId)
+        document.getElementById('modelUrlDiv').innerText = modelUrl
+        const xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = () => {
+            console.log(xhr.readyState)
+            if (xhr.readyState !== 4) {
+                const response = xhr.responseText
+                document.getElementById('result').innerText = response
+            }
+        }
+        xhr.open("GET", modelUrl)
+        xhr.send()
+    }
+</script>    
+</body>
+</html>

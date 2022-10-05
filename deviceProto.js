@@ -42,10 +42,10 @@ export default {
         telemetryValues: {},
         host: ''
     }),
-    created() {
+    async created() {
         client = mqtt.start()
         this.host = mqtt.host
-        this.initModel()
+        await this.initModel()
         this.fetchData()
     },
     methods: {
