@@ -20,7 +20,7 @@ export default {
             }
         },
         async invoke() {
-            let reqValue = {}
+            let reqValue = ''
             if (this.command.request) {
                 const reqSchema = this.resolveSchema(this.command.request.schema)
                 if (reqSchema === 'integer') {
