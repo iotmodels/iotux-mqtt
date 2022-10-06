@@ -63,7 +63,7 @@ export default {
             client.on('connect', () => {
                 console.log('connected', client.connected)
                 client.subscribe(`device/${this.device.deviceId}/props/#`)
-                client.subscribe(`device/${this.device.deviceId}/commands/#`)
+                client.subscribe(`device/${this.device.deviceId}/commands/+/resp`)
                 client.subscribe(`registry/${this.device.deviceId}/status`)
                 })
             client.on('message', (topic, message) => {
@@ -140,6 +140,8 @@ export default {
             client.publish(topic,JSON.stringify(desiredValue), {qos:1, retain: true})            
         },
         onCommand (cmdName, cmdReq) {
+            const cmd = this.commands.filter(c => c.name === cmdName)[0]
+            cmd.responseMsg = ''
             const topic = `device/${this.device.deviceId}/commands/${cmdName}`
             client.publish(topic,JSON.stringify(cmdReq), {qos:1, retain: false})            
         },
