@@ -123,7 +123,6 @@ export default {
             client.on('error', e => console.error(e))
             client.on('connect', () => {
                 console.log('connected', client.connected)
-                    client.subscribe(`device/${this.device.deviceId}/tel`)
                     client.subscribe(`registry/${this.device.deviceId}/status`)
                     client.subscribe(`device/${this.device.deviceId}/props`)
                     client.subscribe(`device/${this.device.deviceId}/props/+/ack`)
@@ -186,13 +185,6 @@ export default {
                     const resValue = resType.decode(message)
                     const resTypeSecond = Object.keys(resType.fields)[1] // not status
                     cmd.responseMsg = resValue[resTypeSecond]
-                }
-                if (topic === `device/${this.device.deviceId}/tel`) {
-                    const tel = Telemetries.decode(message)
-                    Object.keys(Telemetries.fields).forEach(k => {
-                        this.telemetryValues[k] = []
-                        this.telemetryValues[k].push(tel[k])
-                    })
                 }
             })
 
