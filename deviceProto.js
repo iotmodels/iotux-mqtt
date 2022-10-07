@@ -126,7 +126,7 @@ export default {
                     client.subscribe(`registry/${this.device.deviceId}/status`)
                     client.subscribe(`device/${this.device.deviceId}/props`)
                     client.subscribe(`device/${this.device.deviceId}/props/+/ack`)
-                    client.subscribe(`device/${this.device.deviceId}/props/+/set`)
+                    client.subscribe(`device/${this.device.deviceId}/props/+/set/#`)
                     client.subscribe(`device/${this.device.deviceId}/cmd/+/resp`)
                 })
             client.on('message', (topic, message) => {
@@ -148,7 +148,7 @@ export default {
                 }
                 if (topic.startsWith(`device/${this.device.deviceId}/props`)) {
                     const propName = ts[3]
-                    if (topic.endsWith('/set')) {
+                    if (topic.indexOf('/set')>0) {
                         const wprop = Properties.decode(message)
                         this.device.properties.desired[propName] = wprop[propName]
                     }else if (topic.endsWith('/ack')) {
@@ -194,7 +194,11 @@ export default {
             const resSchema = resolveSchema(schema)
             //this.device.properties.desired[name] = ''
             //this.device.properties.reported[name] = ''
-            const topic = `device/${this.device.deviceId}/props/${name}/set`
+            const currentVersion = this.device.properties.reported[name].av || 0
+            const topicV = `device/${this.device.deviceId}/props/${name}/set/?$version=${currentVersion}`
+            client.publish(topicV,null, {qos:1, retain: true}) 
+            const version = currentVersion + 1
+            const topic = `device/${this.device.deviceId}/props/${name}/set/?$version=${version}`
             let desiredValue = {}
             switch (resSchema) {
                 case 'string':
@@ -204,7 +208,7 @@ export default {
                     desiredValue = parseInt(val)
                     break
                 case 'boolean':
-                    desiredValue = (val === 'true') ? 1 : 0
+                    desiredValue = (val === 'true')
                     break
                 case 'double':
                     desiredValue = parseFloat(val)
