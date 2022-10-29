@@ -1,28 +1,35 @@
-const MQTT_COOL_URL = 'http://52.149.245.54:8080'
-mqttcool.openSession(MQTT_COOL_URL, '', '', {
+import createClient from '../coolClient.js'
 
-      onConnectionFailure: function(errorType, errorCode, errorMessage) {
-        console.error('MQTT.Cool connection failure ' + errorType + errorMessage);
-      },
-      onConnectionSuccess: function(mqttCoolSession) {
-        mqttClient = mqttCoolSession.createClient('tcp://azedge-dmqtt-frontend:1883', 'client1');
-  
-        mqttClient.connect({
-          username: 'client1',
-          password : 'password',
-          onSuccess: function() {
-            // Upon successful connection, subscribe to telemetry topics.
-            mqttClient.subscribe('registry/+/status');
-          },
-  
-          onFailure: function(response) {
-            console.log(response.errorMessage + ' [code=' + response.errorCode +
-              ']');
-          }
-        })
+window.onload = async () => {
+	const colors = ['red', 'blue', 'green', 'orange', 'lightgreen', 'lightblue', 'silver', 'black', 'grey']
+	const rndColor = () => colors[Math.floor(Math.random() * colors.length)]
+	const el = document.getElementById('chart')
+	const dataManagedMemory = [] 
+	const dataWorkingSet = []
+	let startTime = Date.now();
+	const chart = new TimeChart(el, {
+			series: [
+					{data: dataManagedMemory, name: 'temperature', color: rndColor()},
+					{data: dataWorkingSet, name: 'workingSet', color: rndColor()}
+			],
+			baseTime: startTime,
+			lineWidth: 5
+			//baseTime: startTime
+	});
+	let numPoints = 0
+	
+	const client = await createClient('e4k')
+	client.subscribe('device/#')
+	client.onMessageArrived = m => {
+		console.log(m.destinationName, m.payloadString)
+		const now = Date.now() - startTime
+		const topic = m.destinationName
+		if (topic.indexOf('telemetry') > 0) {
+			const dataObj = JSON.parse(m.payloadString)
+			if (topic.endsWith('workingSet')) dataWorkingSet.push({x: now, y: parseFloat(dataObj.workingSet)})
+			if (topic.endsWith('managedMemory')) dataManagedMemory.push({x:now, y: parseFloat(dataObj.managedMemory)})
+		}
+		chart.update()
+	}
+}
 
-        mqttClient.onMessageArrived = m => {
-            console.log(m)
-        }
-    }
-})

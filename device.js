@@ -1,5 +1,5 @@
-import mqtt from './mqttClient.js'
-let client
+import mqtt from './coolClient.js'
+//let client
 
 const repoBaseUrl = 'https://iotmodels.github.io/dmr/' // 'https://devicemodels.azure.com'
 const dtmiToPath = function (dtmi) {
@@ -35,11 +35,11 @@ export default {
         telemetryValues: {},
         host : ''
     }),
-    created() {
-        client = mqtt.start()
-        this.host = mqtt.host
+    async created() {
+        const client = await mqtt('e4k')
+        //this.host = mqtt.host
         this.initModel()
-        this.fetchData()
+        this.fetchData(client)
     },
     methods: {
         async initModel() {
@@ -57,28 +57,18 @@ export default {
             this.commands = model.contents.filter(c => c['@type'].includes('Command'))
             this.telemetries = model.contents.filter(c => c['@type'].includes('Telemetry'))
         },
-        async fetchData() {
+        async fetchData(client) {
           
-            client.on('error', e => console.error(e))
-            client.on('connect', () => {
-                console.log('connected', client.connected)
-                client.subscribe(`device/${this.device.deviceId}/props/#`)
-                client.subscribe(`device/${this.device.deviceId}/commands/+/resp`)
-                client.subscribe(`registry/${this.device.deviceId}/status`)
-                })
-            client.on('message', (topic, message) => {
-                let msg = {}
-                if (isBuffer(message)) {
-                    const s = message.toString()
-                    if (s[0] == '{') {
-                        msg = JSON.parse(message)
-                    } else {
-                        msg = s
-                    }
-
-                }
-                //const msgJ = JSON.parse(message)
-                //console.log(topic, msgJ)
+            //client.on('error', e => console.error(e))
+            
+                //console.log('connected', client.connected)
+            client.subscribe(`device/${this.device.deviceId}/props/#`)
+            client.subscribe(`device/${this.device.deviceId}/commands/+/resp`)
+            client.subscribe(`registry/${this.device.deviceId}/status`)
+            
+            client.onMessageArrived = message => {
+                const topic = message.destinationName
+                msg = JSON.parse(message.payloadBytes)
                 const ts = topic.split('/')
                 if (topic === `registry/${this.device.deviceId}/status`) {
                     this.device.connectionState = msg.status === 'online' ? 'Connected' : 'Disconnected'
@@ -109,8 +99,7 @@ export default {
                         this.telemetryValues[k].push(msg[k])
                     })
                 }
-            })
-
+            }
             document.title = this.device.deviceId
         },
         async handlePropUpdate(name, val, schema) {

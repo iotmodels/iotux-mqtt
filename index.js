@@ -2,7 +2,7 @@
 
 // const client = mqtt.connect(`wss://${creds.hostname}:8884/mqtt`, { 
 //     clientId: creds.clientId + Date.now(), username: creds.username, password: creds.pwd })
-import mqtt from './mqttClient.js'
+import createClient from './coolClient.js'
 let client
 const isBuffer = obj => {
     return obj != null && obj.constructor != null &&
@@ -16,39 +16,32 @@ export default {
         devices: [],
         loading: true,
         error: '',
-        connected: false
+        connected: true
     }),
-    created() {
-        // if (client) {
-        //     this.fetchData()
-        // }
+    async created() {
+        console.log('config changed')
+        client = await createClient('e4k')
+        client.onMessageArrived = message => {
+            const topic = message.destinationName
+            console.log(topic)
+            if (topic.startsWith('registry')) {
+            const deviceId = topic.split('/')[1]
+            const dix = this.devices.findIndex(d => d.deviceId === deviceId)
+                const msg = JSON.parse(message.payloadString)
+                // console.log(topic, msg)
+                if (dix === -1) {
+                    this.devices.push({ deviceId, status: msg.status, modelId: msg['model-id'], when: msg.when })
+                } else {
+                    this.devices[dix] = { deviceId, status: msg.status, modelId: msg['model-id'], when: msg.when }
+                }
+                this.devices.sort((a, b) => new Date(a.when) < new Date(b.when) ? 1 : -1)
+            }
+        }
+        //client.subscribe('registry/+/status')
+        client.subscribe('registry/#')
     },
     methods: {
-        async fetchData() {
-            console.log(client.options.href)
-            client.on('error', e => console.error(e))
-            client.on('connect', () => {
-                this.hostName = client.options.href
-                client.subscribe('registry/+/status')
-                this.connected = true
-            })
-            client.subscribe('registry/+/status')
-            client.on('message', (topic, message) => {
-                const deviceId = topic.split('/')[1]
-                const dix = this.devices.findIndex(d => d.deviceId === deviceId)
-                if (isBuffer(message) && message.byteLength > 0) {
-                    const msg = JSON.parse(message)
-                    // console.log(topic, msg)
-                    if (dix === -1) {
-                        this.devices.push({ deviceId, status: msg.status, modelId: msg['model-id'], when: msg.when })
-                    } else {
-                        this.devices[dix] = { deviceId, status: msg.status, modelId: msg['model-id'], when: msg.when }
-                    }
-                    this.devices.sort((a, b) => new Date(a.when) < new Date(b.when) ? 1 : -1)
-                }
-            })
-        },
-        getDeviceUrl(d) {
+       getDeviceUrl(d) {
             if (d.modelId.startsWith('dtmi')) {
                 window.location.href = `device.html?id=${d.deviceId}&model-id=${d.modelId}`
             } else {
@@ -61,10 +54,7 @@ export default {
             const dix = this.devices.findIndex(d => d.deviceId === did)
             this.devices.splice(dix, 1)
         },
-        onConfigChanged() {
-            console.log('config changed')
-            client = mqtt.start()
-            this.fetchData()
+        async onConfigChanged() {
             
         },
         disconnect() {
