@@ -24,7 +24,7 @@ const resolveSchema = s => {
     }
 }
 
-
+let client
 export default {
     data: () => ({
         device: {},
@@ -36,10 +36,10 @@ export default {
         host : ''
     }),
     async created() {
-        const client = await mqtt('e4k')
+        client = await mqtt('e4k')
         //this.host = mqtt.host
         this.initModel()
-        this.fetchData(client)
+        this.fetchData()
     },
     methods: {
         async initModel() {
@@ -57,7 +57,7 @@ export default {
             this.commands = model.contents.filter(c => c['@type'].includes('Command'))
             this.telemetries = model.contents.filter(c => c['@type'].includes('Telemetry'))
         },
-        async fetchData(client) {
+        async fetchData() {
           
             //client.on('error', e => console.error(e))
             
@@ -68,7 +68,10 @@ export default {
             
             client.onMessageArrived = message => {
                 const topic = message.destinationName
-                msg = JSON.parse(message.payloadBytes)
+                console.log(message.payloadString)
+                const jsonString = message.payloadString
+                const msg = JSON.parse(jsonString)
+                console.log(msg)
                 const ts = topic.split('/')
                 if (topic === `registry/${this.device.deviceId}/status`) {
                     this.device.connectionState = msg.status === 'online' ? 'Connected' : 'Disconnected'
@@ -100,14 +103,14 @@ export default {
                     })
                 }
             }
-            document.title = this.device.deviceId
+            //document.title = this.device.deviceId
         },
         async handlePropUpdate(name, val, schema) {
             const resSchema = resolveSchema(schema)
             //this.device.properties.desired[name] = ''
             //this.device.properties.reported[name] = ''
-            const version = (this.device.properties.reported[name].av || 0) + 1
-            const topic = `device/${this.device.deviceId}/props/${name}/set/?$version=${version}`
+            //const version = (this.device.properties.reported[name].av || 0) + 1
+            const topic = `device/${this.device.deviceId}/props/${name}/set/?$version=2`
             let desiredValue = {}
             switch (resSchema) {
                 case 'string':
@@ -126,13 +129,13 @@ export default {
                     console.log('schema serializer not implemented', resSchema)
                     throw new Error('Schema serializer not implemented for' + Json.stringify(resSchema))
             }
-            client.publish(topic,JSON.stringify(desiredValue), {qos:1, retain: true})            
+            client.send(topic,JSON.stringify(desiredValue),1,true)            
         },
         onCommand (cmdName, cmdReq) {
             const cmd = this.commands.filter(c => c.name === cmdName)[0]
             cmd.responseMsg = ''
             const topic = `device/${this.device.deviceId}/commands/${cmdName}`
-            client.publish(topic,JSON.stringify(cmdReq), {qos:1, retain: false})            
+            client.send(topic,JSON.stringify(cmdReq),1, false)            
         },
         formatDate(d) {
             if (d === '0001-01-01T00:00:00Z') return ''

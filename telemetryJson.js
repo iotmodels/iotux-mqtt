@@ -1,3 +1,4 @@
+import createClient from './coolClient.js'
 const gbid = id => document.getElementById(id)
 
 const repoBaseUrl = 'https://iotmodels.github.io/dmr/' // 'https://devicemodels.azure.com'
@@ -43,20 +44,21 @@ const start = async () => {
 
  
    
-    client = mqtt.connect(`${mqttCreds.useTls ? 'wss' : 'ws'}://${mqttCreds.hostName}:${mqttCreds.port}/mqtt`, {
-                clientId: mqttCreds.clientId + 1, username: mqttCreds.userName, password: mqttCreds.password })
-                client.on('connect', () => {
-                    client.subscribe(`device/${deviceId}/telemetry/#`)
-                })
-                
-    
-    client.on('message', (topic, message) => {
+    // client = mqtt.connect(`${mqttCreds.useTls ? 'wss' : 'ws'}://${mqttCreds.hostName}:${mqttCreds.port}/mqtt`, {
+    //             clientId: mqttCreds.clientId + 1, username: mqttCreds.userName, password: mqttCreds.password })
+    //             client.on('connect', () => {
+    //                 client.subscribe(`device/${deviceId}/telemetry/#`)
+    //             })
+    client = await createClient('e4k')
+    client.subscribe(`device/${deviceId}/telemetry/#`)
+    client.onMessageArrived = message => {
         //console.log(topic)
+        const topic = message.destinationName
         const segments = topic.split('/')
         const what = segments[2]
         if (what === 'telemetry') {
             let now = Date.now() - startTime
-            const tel = JSON.parse(message)
+            const tel = JSON.parse(message.payloadString)
             Telemetries.map(t => t.name).forEach(t => {
                 if (tel[t]) {
                     dataPoints[t].push({x: now, y: tel[t]})
@@ -69,6 +71,6 @@ const start = async () => {
             })
             chart.update()
         }
-    })
+    }
 }
 window.onload = start
