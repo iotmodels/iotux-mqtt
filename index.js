@@ -50,7 +50,7 @@ export default {
         },
         removeDevice(did) {
             const topic = `registry/${did}/status`
-            client.publish(topic, '', { retain: true, qos: 1 })
+            client.send(topic, '', 1, true )
             const dix = this.devices.findIndex(d => d.deviceId === did)
             this.devices.splice(dix, 1)
         },

@@ -1,4 +1,4 @@
-const MQTT_COOL_URL = 'http://52.149.245.54:8080'
+const MQTT_COOL_URL = 'http://localhost:8080'
 const createClient = async alias => {
 	return new Promise((resolve, reject) => {
 		mqttcool.openSession(MQTT_COOL_URL, '', '', {

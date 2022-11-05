@@ -36,10 +36,51 @@ export default {
         host : ''
     }),
     async created() {
+        await this.initModel()
         client = await mqtt('e4k')
+        console.log(client)
         //this.host = mqtt.host
-        this.initModel()
-        this.fetchData()
+        client.subscribe(`device/${this.device.deviceId}/props/#`)
+        client.subscribe(`device/${this.device.deviceId}/commands/+/resp`)
+        client.subscribe(`registry/${this.device.deviceId}/status`)
+        
+        client.onMessageArrived = message => {
+            const topic = message.destinationName
+            console.log(topic, message.payloadString)
+            const jsonString = message.payloadString
+            const msg = JSON.parse(jsonString)
+            console.log(msg)
+            const ts = topic.split('/')
+            if (topic === `registry/${this.device.deviceId}/status`) {
+                this.device.connectionState = msg.status === 'online' ? 'Connected' : 'Disconnected'
+                this.device.lastActivityTime = msg.when
+            }
+            if (topic.startsWith(`device/${this.device.deviceId}/props`)) {
+                const propName = ts[3]
+                if (topic.indexOf('/set') > 0)
+                {
+                    this.device.properties.desired[propName] = msg
+                // } else  if (topic.endsWith('/ack')) {
+                //     this.device.properties.reported['ack_' + propName] = msg
+                } else {
+                    this.device.properties.reported[propName] = msg
+                }
+            }
+            if (topic.startsWith(`device/${this.device.deviceId}/commands`)) {
+                const cmdName = ts[3]
+                const cmd = this.commands.filter(c => c.name === cmdName)[0]
+                // const cmdRespSchema = resolveSchema(cmd.response.schema)
+                cmd.responseMsg = msg
+            }
+            if (topic === `device/${this.device.deviceId}/telemetry`) {
+                const maxItems = 10
+                const telName = Object.keys(msg)[0]
+                Object.keys(msg).forEach(k => {
+                    this.telemetryValues[k] = []
+                    this.telemetryValues[k].push(msg[k])
+                })
+            }
+        }
     },
     methods: {
         async initModel() {
@@ -57,7 +98,7 @@ export default {
             this.commands = model.contents.filter(c => c['@type'].includes('Command'))
             this.telemetries = model.contents.filter(c => c['@type'].includes('Telemetry'))
         },
-        async fetchData() {
+        fetchData() {
           
             //client.on('error', e => console.error(e))
             
