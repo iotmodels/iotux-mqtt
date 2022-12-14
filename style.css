@@ -82,7 +82,8 @@ pre {
 }
 
 .prop-value {
-    font-weight:bold
+    font-weight:bold;
+    word-break: break-word;
 }
 
 .prop-md {
